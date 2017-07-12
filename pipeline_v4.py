@@ -98,11 +98,11 @@ print '-------------------------------------------------------------------------
 
 #else:
 genome_ref = "/mnt/genetica/GeneticaPipeDB/genome_data/hg19/ucsc.hg19.fasta"
-picardtools = "/home/genetica/GeneticaPipeDB/software/picard-tools-2.1.1/picard.jar"
-gatk = "/home/genetica/GeneticaPipeDB/software/GenomeAnalysisTK-3.5/GenomeAnalysisTK.jar"
-hg19_path = "/home/genetica/GeneticaPipeDB/genome_data/hg19/"
-annovar = "/home/genetica/GeneticaPipeDB/software/annovar/table_annovar.pl"
-annovarDB = "/home/genetica/GeneticaPipeDB/software/annovar/humandb"
+picardtools = "/mnt/genetica/GeneticaPipeDB/software/picard-tools-2.1.1/picard.jar"
+gatk = "/mnt/genetica/GeneticaPipeDB/software/GenomeAnalysisTK-3.5/GenomeAnalysisTK.jar"
+hg19_path = "/mnt/genetica/GeneticaPipeDB/genome_data/hg19/"
+annovar = "/mnt/genetica/GeneticaPipeDB/software/annovar/table_annovar.pl"
+annovarDB = "/mnt/genetica/GeneticaPipeDB/software/annovar/humandb"
 #genome_fai = "/home/"+ user +"/genetica2/d.aguilera/CNVs_analysis/CoNVaDING-1.1.6/ucsc.hg19_convading.fasta.fai"
 
 print '                               Mapping fastq files (BWA)                                      '
