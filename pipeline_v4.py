@@ -97,7 +97,7 @@ print '-------------------------------------------------------------------------
 #	genome_fai = '/mnt/datos2/d.aguilera/CNVs_analysis/CoNVaDING-1.1.6/ucsc.hg19_convading.fasta.fai'
 
 #else:
-genome_ref = "/home/"+ user +"/genetica/geneticaPipeline/genome_data/hg19/ucsc.hg19.fasta"
+genome_ref = "/mnt/genetica/GeneticaPipeDB/genome_data/hg19/ucsc.hg19.fasta"
 picardtools = "/home/"+ user +"/genetica/geneticaPipeline/software/picard-tools-2.1.1/picard.jar"
 gatk = "/home/"+ user +"/genetica/geneticaPipeline/software/GenomeAnalysisTK-3.5/GenomeAnalysisTK.jar"
 hg19_path = "/home/"+ user +"/genetica/geneticaPipeline/genome_data/hg19/"
