@@ -14,6 +14,9 @@ def countdown(t):
 
 parser = argparse.ArgumentParser(description="Process Fastq files for getting variants")
 
+parser.add_argument("-u", action="store", dest='user',
+		    help="user name to look/store in the correct dir")
+
 parser.add_argument("-I", action="store",dest='input',
                     help="path to input folder")
 
@@ -30,7 +33,6 @@ parser.add_argument("-local", action="store_true",
                     help="set this flag to run the pipeline using local paths")
 
 args = parser.parse_args()
-
 
 
 if args.input == None:
@@ -66,6 +68,7 @@ print 'Number of samples to analyze: ' + str(len(forward_paths))
 print ''
 print 'ARGUMENTS:'
 print ''
+print ' -User: ' + str(args.user)
 print '	-Input: ' + str(args.input)
 print '	-Threads: ' + str(args.threads)
 print '	-Sample to parallelizate: ' + str(args.parallelization)
@@ -80,23 +83,23 @@ print ''
 print '---------------------------------------------------------------------------------------------'
 
 
-if args.local:
-	genome_ref = "/home/daguilera/Documents/genome_data/hg19/ucsc.hg19.fasta"
-	picardtools = "/mnt/datos1/GeneticaPipeDB/software/picard-tools-2.1.1/picard.jar"
-	gatk = '/mnt/datos1/GeneticaPipeDB/software/GenomeAnalysisTK-3.5/GenomeAnalysisTK.jar'
-	hg19_path = "/home/daguilera/Documents/genome_data/hg19/"
-	annovar = "/mnt/datos1/GeneticaPipeDB/software/annovar/table_annovar.pl"
-	annovarDB = "/mnt/datos1/GeneticaPipeDB/software/annovar/humandb"
-	genome_fai = '/mnt/datos2/d.aguilera/CNVs_analysis/CoNVaDING-1.1.6/ucsc.hg19_convading.fasta.fai'
+#if args.local:
+#	genome_ref = "/home/"+ user +"/Documents/genome_data/hg19/ucsc.hg19.fasta"
+#	picardtools = "/mnt/datos1/GeneticaPipeDB/software/picard-tools-2.1.1/picard.jar"
+#	gatk = '/mnt/datos1/GeneticaPipeDB/software/GenomeAnalysisTK-3.5/GenomeAnalysisTK.jar'
+#	hg19_path = "/home/daguilera/Documents/genome_data/hg19/"
+#	annovar = "/mnt/datos1/GeneticaPipeDB/software/annovar/table_annovar.pl"
+#	annovarDB = "/mnt/datos1/GeneticaPipeDB/software/annovar/humandb"
+#	genome_fai = '/mnt/datos2/d.aguilera/CNVs_analysis/CoNVaDING-1.1.6/ucsc.hg19_convading.fasta.fai'
 
-else:
-	genome_ref = "/home/domin/genetica/GeneticaPipeDB/genome_data/hg19/ucsc.hg19.fasta"
-	picardtools = "/home/domin/genetica/GeneticaPipeDB/software/picard-tools-2.1.1/picard.jar"
-	gatk = '/home/domin/genetica/GeneticaPipeDB/software/GenomeAnalysisTK-3.5/GenomeAnalysisTK.jar'
-	hg19_path = "/home/domin/genetica/GeneticaPipeDB/genome_data/hg19/"
-	annovar = "/home/domin/genetica/GeneticaPipeDB/software/annovar/table_annovar.pl"
-	annovarDB = "/home/domin/genetica/GeneticaPipeDB/software/annovar/humandb"
-	genome_fai = '/home/domin/genetica2/d.aguilera/CNVs_analysis/CoNVaDING-1.1.6/ucsc.hg19_convading.fasta.fai'
+#else:
+genome_ref = "/home/"+ user +"/genetica/geneticaPipeline/genome_data/hg19/ucsc.hg19.fasta"
+picardtools = "/home/"+ user +"/genetica/geneticaPipeline/software/picard-tools-2.1.1/picard.jar"
+gatk = "/home/"+ user +"/genetica/geneticaPipeline/software/GenomeAnalysisTK-3.5/GenomeAnalysisTK.jar"
+hg19_path = "/home/"+ user +"/genetica/geneticaPipeline/genome_data/hg19/"
+annovar = "/home/"+ user +"/genetica/geneticaPipeline/software/annovar/table_annovar.pl"
+annovarDB = "/home/"+ user +"/genetica/geneticaPipeline/software/annovar/humandb"
+#genome_fai = "/home/"+ user +"/genetica2/d.aguilera/CNVs_analysis/CoNVaDING-1.1.6/ucsc.hg19_convading.fasta.fai"
 
 print '                               Mapping fastq files (BWA)                                      '
 print '----------------------------------------------------------------------------------------------'
