@@ -1,3 +1,7 @@
+#############################################################################
+## Pipeline is now on github: https://github.com/pminguez/geneticaPipeline ##
+#############################################################################
+
 import sys
 from glob import glob
 from subprocess import call 
