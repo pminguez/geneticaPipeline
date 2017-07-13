@@ -282,8 +282,8 @@ for vcffile in variants:
 
 	if args.local:
 		
-		call('python /mnt/datos1/GeneticaPipeDB/pipeline/annotation_scripts/vcf_processing_step1_v2.py ' + sample_path + '/' + sample_name + '.hg19_multianno.txt' ,shell = True)
-		call('Rscript /mnt/datos1/GeneticaPipeDB/pipeline/annotation_scripts/vcf_processing_step2.R ' + sample_path + '/' + sample_name + '_annotated_formatted.txt',shell = True)
+		call('python /home/"+ user +"/geneticaPipeline/annotation_scripts/vcf_processing_step1_v2.py ' + sample_path + '/' + sample_name + '.hg19_multianno.txt' ,shell = True)
+		call('Rscript /home/"+ user  +"/geneticaPipeline/annotation_scripts/vcf_processing_step2.R ' + sample_path + '/' + sample_name + '_annotated_formatted.txt',shell = True)
 		
 		#call('python /mnt/datos1/GeneticaPipeDB/pipeline/annotation_scripts/vcf_processing_step1_cancer.py ' + sample_path + '/' + sample_name + '.hg19_multianno.txt' ,shell = True)
 	
