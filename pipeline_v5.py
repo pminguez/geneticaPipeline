@@ -37,6 +37,9 @@ parser.add_argument("-duplicates", action="store_true",
 parser.add_argument("-local", action="store_true",
                     help="set this flag to run the pipeline using local paths")
 
+parser.add_argument("-gvcf", action="store_true", dest='gvcf',
+					help="set this flag to keep gvcf files")
+
 args = parser.parse_args()
 
 
@@ -48,8 +51,9 @@ if args.input == None:
 	exit()
 
 #Importing samples
-forward_paths = sorted(glob(args.input + '*_R1.fastq.gz'))
-reverse_paths = sorted(glob(args.input + '*_R2.fastq.gz'))
+forward_paths = sorted(glob(args.input + '*_1.fastq.gz'))
+reverse_paths = sorted(glob(args.input + '*_2.fastq.gz'))
+#bam_paths = sorted(glob(args.input + '*_bqsr.bam'))
 
 
 if forward_paths == []:
@@ -79,6 +83,7 @@ print '	-Threads: ' + str(args.threads)
 print '	-Sample to parallelizate: ' + str(args.parallelization)
 print '	-MarkDuplicates: ' + str(args.duplicates)
 print '	-Running local: ' + str(args.local)
+print ' -Keep gVCF files: ' + str(args.gvcf)
 print ''
 print '---------------------------------------------------------------------------------------------'
 print 'Please review the arguments and number of samples to process...'
@@ -121,6 +126,15 @@ for i in range(0,len(forward_paths)):
 
 	call('bwa mem -t' + str(args.threads) + ' -R "@RG\tID:' + sample_name + '\tLB:library\tPL:illumina\tPU:library\tSM:' + sample_name + '" ' + genome_ref + ' ' + forward_paths[i] + ' ' + reverse_paths[i] + ' > ' + sample_path + '/' + sample_name + '_bwa.sam',shell = True)
 
+
+'''
+#Loop samples for bam
+for i in range(0,len(bam_paths)):
+	sample_path = bam_paths[i][:bam_paths[i].rfind('/')+1]
+	sample_name = bam_paths[i][bam_paths[i].rfind('/')+1:bam_paths[i].rfind('_bwa')]
+
+	call('bwa mem -t' + str(args.threads) + ' -R "@RG\tID:' + sample_name + '\tLB:library\tPL:illumina\tPU:library\tSM:' + sample_name + '" ' + genome_ref + ' ' + forward_paths[i] + ' ' + reverse_paths[i] + ' > ' + sample_path + '/' + sample_name + '_bwa.sam',shell = True)
+'''
 
 
 #Unload genome reference	
@@ -277,8 +291,6 @@ print '-------------------------------------------------------------------------
 print '[FJD_Pipeline] Merging the gVCFs...OK'
 print '----------------------------------------------------------------------------------------------'
 
-#Si se corre la pipeline para trios usar el siguiente paso
-
 
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Genotyping trio...'
@@ -310,18 +322,20 @@ print '-------------------------------------------------------------------------
 print '[FJD_Pipeline] Genotyping in single mode...OK!'
 print '----------------------------------------------------------------------------------------------'
 
-'''
+
 #Remove gVCF files
-print '----------------------------------------------------------------------------------------------'
-print '[FJD_Pipeline] Removing gVCF files...'
-print '----------------------------------------------------------------------------------------------'
-intermediary_files3 = glob(sample_path + '*.g.vcf') + glob(sample_path + '*.g.vcf.idx')
-for i in intermediary_files3:
-	os.remove(i)
-print '----------------------------------------------------------------------------------------------'
-print '[FJD_Pipeline] Removing gVCF files...OK'
-print '----------------------------------------------------------------------------------------------'
-'''
+if args.gvcf == None:
+	print '----------------------------------------------------------------------------------------------'
+	print '[FJD_Pipeline] Removing gVCF files...'
+	print '----------------------------------------------------------------------------------------------'
+	intermediary_files3 = glob(sample_path + '*.g.vcf') + glob(sample_path + '*.g.vcf.idx')
+	for i in intermediary_files3:
+		os.remove(i)
+	print '----------------------------------------------------------------------------------------------'
+	print '[FJD_Pipeline] Removing gVCF files...OK'
+	print '----------------------------------------------------------------------------------------------'
+
+
 
 #Empieza annovar
 print '----------------------------------------------------------------------------------------------'
@@ -369,18 +383,19 @@ for vcffile in variants:
 	print '[FJD_Pipeline] Formating and Filtering Variants...OK!'
 	print '----------------------------------------------------------------------------------------------'
 
-'''
+
 #Remove intermediary files
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Removing intermediary files...'
 print '----------------------------------------------------------------------------------------------'
-intermediary_files4 = glob(sample_path + '*.hg19_multianno.vcf') + glob(sample_path + '*_annotated_formatted.txt')
+intermediary_files4 = glob(sample_path + '*.hg19_multianno.vcf')
 for i in intermediary_files4:
 	os.remove(i)
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Removing intermediary files...OK'
 print '----------------------------------------------------------------------------------------------'
-'''
+
+
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] #VARIANTS READY FOR ANALYSIS#'
 print '----------------------------------------------------------------------------------------------'	
