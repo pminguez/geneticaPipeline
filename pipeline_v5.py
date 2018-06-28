@@ -20,15 +20,18 @@ def countdown(t):
 parser = argparse.ArgumentParser(description="Process Fastq files for getting variants")
 
 parser.add_argument("-u", action="store", dest='user',
-		    help="user name to look/store in the correct dir")
+		    		help="user name to look/store in the correct dir")
 
-parser.add_argument("-I", action="store",dest='input',
+parser.add_argument("-I", action="store", dest='input',
                     help="path to input folder")
 
-parser.add_argument("-T", action="store",dest='threads', type = int, default = 16,
+parser.add_argument("-o", action="store", dest='output',
+					help="path to output results")
+
+parser.add_argument("-T", action="store", dest='threads', type = int, default = 16,
                     help="specify number of threads to use")
 
-parser.add_argument("-J", action="store",dest='parallelization', type = int, default = 5,
+parser.add_argument("-J", action="store", dest='parallelization', type = int, default = 5,
                     help="specify number of samples to run in parallel")
 
 parser.add_argument("-duplicates", action="store_true",
@@ -37,7 +40,7 @@ parser.add_argument("-duplicates", action="store_true",
 parser.add_argument("-local", action="store_true",
                     help="set this flag to run the pipeline using local paths")
 
-parser.add_argument("-gvcf", action="store_true", dest='gvcf',
+parser.add_argument("-gvcf", action="store_true",
 					help="set this flag to keep gvcf files")
 
 args = parser.parse_args()
@@ -50,15 +53,27 @@ if args.input == None:
 	parser.print_help()
 	exit()
 
+if args.output == None:
+	print ''
+	print 'ERROR: An output folder containing fastq files is needed'
+	print ''
+	parser.print_help()
+	exit()
+
 #Importing samples
-forward_paths = sorted(glob(args.input + '*_1.fastq.gz'))
-reverse_paths = sorted(glob(args.input + '*_2.fastq.gz'))
+forward_paths = sorted(glob(args.input + '*_R1.fastq.gz'))
+reverse_paths = sorted(glob(args.input + '*_R2.fastq.gz'))
 #bam_paths = sorted(glob(args.input + '*_bqsr.bam'))
 
 
 if forward_paths == []:
+	forward_paths = sorted(glob(args.input + '*_1.fastq.gz'))
+	reverse_paths = sorted(glob(args.input + '*_2.fastq.gz'))
+	print 'FUNCIONA. BUSCA POR _1 en vez de _R1'
+
+if forward_paths == []:
 	print ''
-	print 'ERROR: No fastq files detected in ' + args.input + '.\nFastq files names should be named: name_R1.fastq.gz and name_R2.fastq.gz'
+	print 'ERROR: No fastq files detected in ' + args.input + '.\nFastq files names should be named: name_R1.fastq.gz and name_R2.fastq.gz or name_1.fastq.gz and name_2.fastq.gz'
 	print ''
 	exit()
 
@@ -79,11 +94,12 @@ print 'ARGUMENTS:'
 print ''
 print ' -User: ' + str(args.user)
 print '	-Input: ' + str(args.input)
+print '	-Output: ' + str(args.output)
 print '	-Threads: ' + str(args.threads)
 print '	-Sample to parallelizate: ' + str(args.parallelization)
 print '	-MarkDuplicates: ' + str(args.duplicates)
 print '	-Running local: ' + str(args.local)
-print ' -Keep gVCF files: ' + str(args.gvcf)
+print '	-Keep gVCF files: ' + str(args.gvcf)
 print ''
 print '---------------------------------------------------------------------------------------------'
 print 'Please review the arguments and number of samples to process...'
@@ -100,7 +116,7 @@ if args.local:
 	hg19_path = "/mnt/genetica/GeneticaPipeDB/genome_data/hg19/"
 	annovar = "/mnt/genetica/GeneticaPipeDB/software/annovar/table_annovar.pl"
 	annovarDB = "/mnt/genetica/GeneticaPipeDB/software/annovar/humandb"
-
+	output_path = args.output
 else:
 	genome_ref = "/mnt/genetica/" + str(args.user) + "/GeneticaPipeDB/genome_data/hg19/ucsc.hg19.fasta"
 	picardtools = "/mnt/genetica/"+ str(args.user) + "/GeneticaPipeDB/software/picard-tools-2.1.1/picard.jar"
@@ -108,7 +124,7 @@ else:
 	hg19_path = "/mnt/genetica/"+ str(args.user) + "/GeneticaPipeDB/genome_data/hg19/"
 	annovar = "/mnt/genetica/"+ str(args.user) + "/GeneticaPipeDB/software/annovar/table_annovar.pl"
 	annovarDB = "/mnt/genetica/"+ str(args.user) + "/GeneticaPipeDB/software/annovar/humandb"
-
+	output_path = args.output
 
 
 print '                               Mapping fastq files (BWA)                                      '
@@ -124,7 +140,8 @@ for i in range(0,len(forward_paths)):
 	sample_path = forward_paths[i][:forward_paths[i].rfind('/')+1]
 	sample_name = forward_paths[i][forward_paths[i].rfind('/')+1:forward_paths[i].rfind('_R')]
 
-	call('bwa mem -t' + str(args.threads) + ' -R "@RG\tID:' + sample_name + '\tLB:library\tPL:illumina\tPU:library\tSM:' + sample_name + '" ' + genome_ref + ' ' + forward_paths[i] + ' ' + reverse_paths[i] + ' > ' + sample_path + '/' + sample_name + '_bwa.sam',shell = True)
+#	call('bwa mem -t' + str(args.threads) + ' -R "@RG\tID:' + sample_name + '\tLB:library\tPL:illumina\tPU:library\tSM:' + sample_name + '" ' + genome_ref + ' ' + forward_paths[i] + ' ' + reverse_paths[i] + ' > ' + sample_path + '/' + sample_name + '_bwa.sam',shell = True)
+	call('bwa mem -t' + str(args.threads) + ' -R "@RG\tID:' + sample_name + '\tLB:library\tPL:illumina\tPU:library\tSM:' + sample_name + '" ' + genome_ref + ' ' + forward_paths[i] + ' ' + reverse_paths[i] + ' > ' + output_path + '/' + sample_name + '_bwa.sam',shell = True)
 
 
 '''
@@ -144,7 +161,9 @@ print '-------------------------------------------------------------------------
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Sorting and creating bam and bai files of samples...'
 print '----------------------------------------------------------------------------------------------'
-call("find " + sample_path +  "*.sam | parallel --no-notice -j" + str(args.parallelization) + " 'samtools sort {} -O BAM -@ " + str(args.threads / 2) + " -o {}_sorted.bam && samtools index {}_sorted.bam'", shell = True)
+#call("find " + sample_path +  "*.sam | parallel --no-notice -j" + str(args.parallelization) + " 'samtools sort {} -O BAM -@ " + str(args.threads / 2) + " -o {}_sorted.bam && samtools index {}_sorted.bam'", shell = True)
+call("find " + output_path +  "*.sam | parallel --no-notice -j" + str(args.parallelization) + " 'samtools sort {} -O BAM -@ " + str(args.threads / 2) + " -o {}_sorted.bam && samtools index {}_sorted.bam'", shell = True)
+
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] OK! '
 print '----------------------------------------------------------------------------------------------'
@@ -156,7 +175,7 @@ indelrealigner_input = '*_sorted.bam'
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Removing sam files...'
 print '----------------------------------------------------------------------------------------------'
-for i in glob(sample_path + '*.sam'):
+for i in glob(output_path + '*.sam'):
 	os.remove(i)
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Removing sam files...OK'
@@ -168,7 +187,7 @@ if args.duplicates:
 	print '----------------------------------------------------------------------------------------------'
 	print '[FJD_Pipeline] Marking Duplicates... '
 	print '----------------------------------------------------------------------------------------------'
-	call("find " + sample_path + "*_sorted.bam | parallel --no-notice -j" + str(args.parallelization) + " 'java -Xmx9g -jar " + picardtools + " \
+	call("find " + output_path + "*_sorted.bam | parallel --no-notice -j" + str(args.parallelization) + " 'java -Xmx9g -jar " + picardtools + " \
 		MarkDuplicates \
 		I= {} \
 		O= {}_dedupped.bam \
@@ -189,7 +208,7 @@ if args.duplicates:
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Doing IndelRealigment... '
 print '---------------------------------------------------------------------------------------------'
-call("find " + sample_path +  indelrealigner_input + " | parallel --no-notice -j" + str(args.parallelization) + " 'java -Xmx9g -jar " + gatk + " \
+call("find " + output_path +  indelrealigner_input + " | parallel --no-notice -j" + str(args.parallelization) + " 'java -Xmx9g -jar " + gatk + " \
 	-T IndelRealigner \
 	-R " + genome_ref + " \
 	-I {} \
@@ -208,7 +227,7 @@ print '-------------------------------------------------------------------------
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Removing intermediary files...'
 print '----------------------------------------------------------------------------------------------'
-intermediary_files = glob(sample_path + '*_dedupped.bam') + glob(sample_path + '*_dedupped.bai') + glob(sample_path + '*_sorted.bam') + glob(sample_path + '*_sorted.bam.bai')
+intermediary_files = glob(output_path + '*_dedupped.bam') + glob(output_path + '*_dedupped.bai') + glob(output_path + '*_sorted.bam') + glob(output_path + '*_sorted.bam.bai')
 for i in intermediary_files:
 	os.remove(i)
 print '----------------------------------------------------------------------------------------------'
@@ -220,7 +239,7 @@ print '-------------------------------------------------------------------------
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Doing Base Quality Score Recalibration (Step1)...'
 print '----------------------------------------------------------------------------------------------'
-call("find " + sample_path + "*_indelrealigned.bam | parallel -j" + str(args.parallelization) + " 'java -Xmx9g -jar " + gatk + " \
+call("find " + output_path + "*_indelrealigned.bam | parallel -j" + str(args.parallelization) + " 'java -Xmx9g -jar " + gatk + " \
 	-T BaseRecalibrator \
 	-R " + genome_ref + " \
 	-I {} \
@@ -236,7 +255,7 @@ print '-------------------------------------------------------------------------
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Doing Base Quality Score Recalibration (Step2)...'
 print '----------------------------------------------------------------------------------------------'
-call("find " + sample_path + "*_indelrealigned.bam | parallel -j" + str(args.parallelization) + " 'java -Xmx9g -jar " + gatk + " \
+call("find " + output_path + "*_indelrealigned.bam | parallel -j" + str(args.parallelization) + " 'java -Xmx9g -jar " + gatk + " \
 	-T PrintReads \
 	-R " + genome_ref + " \
 	-I {} \
@@ -251,7 +270,7 @@ print '-------------------------------------------------------------------------
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Removing intermediary files...'
 print '----------------------------------------------------------------------------------------------'
-intermediary_files2 = glob(sample_path + '*_indelrealigned.bam') + glob(sample_path + '*_indelrealigned.bai')
+intermediary_files2 = glob(output_path + '*_indelrealigned.bam') + glob(output_path + '*_indelrealigned.bai')
 for i in intermediary_files2:
 	os.remove(i)
 print '----------------------------------------------------------------------------------------------'
@@ -264,7 +283,7 @@ print '-------------------------------------------------------------------------
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Calling the variants...'
 print '----------------------------------------------------------------------------------------------'
-call("find " + sample_path + "*_bqsr.bam | parallel -j" + str(args.parallelization) + " 'java -Xmx9g -jar " + gatk + " \
+call("find " + output_path + "*_bqsr.bam | parallel -j" + str(args.parallelization) + " 'java -Xmx9g -jar " + gatk + " \
 	-T HaplotypeCaller \
 	-R " + genome_ref + " \
 	-I {} \
@@ -312,7 +331,7 @@ print '-------------------------------------------------------------------------
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Genotyping in single mode...'
 print '----------------------------------------------------------------------------------------------'
-call("find " + sample_path + "*.g.vcf | parallel -j1 'java -Xmx28g -jar " + gatk + " \
+call("find " + output_path + "*.g.vcf | parallel -j1 'java -Xmx28g -jar " + gatk + " \
 	-T GenotypeGVCFs \
 	-nt " + str(args.threads) + " \
 	-R " + genome_ref + " \
@@ -324,12 +343,12 @@ print '-------------------------------------------------------------------------
 
 
 #Remove gVCF files
-if args.gvcf == None:
+if args.gvcf:
 	print '----------------------------------------------------------------------------------------------'
 	print '[FJD_Pipeline] Removing gVCF files...'
 	print '----------------------------------------------------------------------------------------------'
-	intermediary_files3 = glob(sample_path + '*.g.vcf') + glob(sample_path + '*.g.vcf.idx')
-	for i in intermediary_files3:
+	intermediary_files3 = glob(output_path + '*.g.vcf') + glob(output_path + '*.g.vcf.idx')
+		for i in intermediary_files3:
 		os.remove(i)
 	print '----------------------------------------------------------------------------------------------'
 	print '[FJD_Pipeline] Removing gVCF files...OK'
@@ -342,7 +361,7 @@ print '-------------------------------------------------------------------------
 print '[FJD_Pipeline] Annotating Variants...'
 print '----------------------------------------------------------------------------------------------'
 
-variants = sorted(glob(args.input + '*singleGT_raw.vcf'))
+variants = sorted(glob(args.output + '*singleGT_raw.vcf'))
 
 for vcffile in variants:
 	sample_path = vcffile[:vcffile.rfind('/')+1]
@@ -388,7 +407,7 @@ for vcffile in variants:
 print '----------------------------------------------------------------------------------------------'
 print '[FJD_Pipeline] Removing intermediary files...'
 print '----------------------------------------------------------------------------------------------'
-intermediary_files4 = glob(sample_path + '*.hg19_multianno.vcf')
+intermediary_files4 = glob(output_path + '*_recal_data.table')
 for i in intermediary_files4:
 	os.remove(i)
 print '----------------------------------------------------------------------------------------------'
